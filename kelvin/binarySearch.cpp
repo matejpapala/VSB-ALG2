@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 using namespace std;
 
 std::vector<int> readIntegersFromFile(const std::string &filename)
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
     std::string numbers_file = argv[2];
     auto data = readIntegersFromFile(data_file);
     auto numbers = readIntegersFromFile(numbers_file);
-    sort(data.begin(), data.end());
+    std::sort(data.begin(), data.end());
 
     binarySearchPrint(data, numbers);
     return 0;

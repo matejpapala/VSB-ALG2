@@ -1,4 +1,8 @@
-*.exe
+*[!.]*
 *.log
 *.aux
-a.out
+*.o
+*.out
+*.exe
+*.a
+*.so

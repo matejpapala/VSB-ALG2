@@ -1,51 +1,57 @@
-#include<vector>
-#include<exception>
-#include<iostream>
-#include<algorithm>
+#include <vector>
+#include <exception>
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <string>
 
 using std::vector;
 
 class Heap{
     private:
     vector<int> data;
+    size_t n = 2;
     
     size_t parent(size_t index) const {
-        if(index == 0){return 0;} // note that heap root has no parent
-        return (index - 1) / 2;
+        if(index == 0){return 0;}
+        return (index - 1) / n;
     }
 
     void heapify(size_t index){
         size_t largest = index;
-        size_t children[2] = {2*index + 1, 2*index + 2};
-
-        for(const auto child : children){
-            if(child > data.size()){ break;} // indices can be out of bounds
+        size_t firstChild = n * index + 1;
+        for(size_t k = 0; k < n; ++k){
+            size_t child = firstChild + k;
+            if(child >= data.size()) break;
             if(data[child] > data[largest]){
                 largest = child;
             }
         }
         if(largest != index){
             std::swap(data[index], data[largest]);
-            heapify(largest);  // restore heap property on subtree
+            heapify(largest);
         }
     }
 
     void makeHeap(){
-        // build heap from bottom to top
-        for(int i = data.size() / 2 - 1; i >= 0; i--){
-            heapify(i);
+        if(data.size() < 2) return;
+        long long start = static_cast<long long>((data.size() - 2) / n);
+        for(long long i = start; i >= 0; --i){
+            heapify(static_cast<size_t>(i));
         }
     }
 
     public:
     Heap() = default;
 
-    Heap(const vector<int>& input){
+    Heap(size_t arity): n(arity) {}
+
+    Heap(size_t arity, const vector<int>& input): n(arity){
         data = input;
         makeHeap();
     }
 
-    Heap(vector<int>&& input){
+    Heap(size_t arity, vector<int>&& input): n(arity){
         data = std::move(input);
         makeHeap();
     }
@@ -54,9 +60,7 @@ class Heap{
         size_t currentIndex = data.size();
         data.push_back(value);
         size_t parentIndex = parent(currentIndex);
-
-        // repair heap property by pushing the new number up
-        while(currentIndex != 0 and data[currentIndex] > data[parentIndex]){
+        while(currentIndex != 0 && data[currentIndex] > data[parentIndex]){
             std::swap(data[currentIndex], data[parentIndex]);
             currentIndex = parentIndex;
             parentIndex = parent(currentIndex);
@@ -64,17 +68,12 @@ class Heap{
     }
 
     int getMax(){
-        if( data.empty() ){
-            throw std::out_of_range("Trying to extract item from empty heap");
-        }
         int maxValue = data[0];
-
         data[0] = data.back();
         data.pop_back();
         if( data.size() > 1){
             heapify(0);
         }
-
         return maxValue;
     }
 
@@ -91,22 +90,27 @@ class Heap{
 
 };
 
-
-void test(){
-    vector<int> data = {10, 11, 1, 2, 3, 100, 200};
-    Heap heap;
-    for(const int item : data){
-        heap.insert(item);
-    }
-    Heap heap2(std::move(data));
-    std::cout << "Note that these constructions do not lead to same internal vector.\n";
-    heap2.print();
-    heap.print();
-
+static vector<int> readIntegersFromFile(const std::string& filename){
+    std::ifstream f(filename);
+    vector<int> v;
+    int x;
+    while(f >> x) v.push_back(x);
+    return v;
 }
 
-
-int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]){
-    test();
+int main(int argc, char* argv[]){
+    if(argc < 3) return 0;
+    size_t arity = static_cast<size_t>(std::stoul(argv[1]));
+    vector<int> input = readIntegersFromFile(argv[2]);
+    Heap heap(arity, input);
+    heap.print();
+    heap.getMax();
+    heap.print();
+    heap.insert(42);
+    heap.print();
+    heap.insert(-5);
+    heap.print();
+    heap.getMax();
+    heap.print();
     return 0;
 }
